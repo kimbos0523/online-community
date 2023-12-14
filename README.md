@@ -1,6 +1,6 @@
 # online-community
 
-The service is designed to explore the most basic and ubiquitous online community. The service features simple CRUD functionality and is programmed using Java 17 and the Spring Framework. This project was initiated in January 2023 and developed over the course of one month. During the integration process, this project was transferred from a different GitHub account. The expected upcoming improvements include an admin page and user registration functionality through the sign-up process
+The service is designed to explore the most basic and ubiquitous online community. The service features simple CRUD functionality and is programmed using Java 17 and the Spring Framework. This project was initiated in January 2022 and developed over the course of one month. During the integration process, this project was transferred from a different GitHub account. The expected upcoming improvements include an admin page and user registration functionality through the sign-up process
 
 # Development Environment and Tech Stack
 
