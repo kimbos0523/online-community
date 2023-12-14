@@ -2,9 +2,9 @@ package com.kimbos.onlinecommunity.controller;
 
 import com.kimbos.onlinecommunity.domain.enums.FormStatus;
 import com.kimbos.onlinecommunity.domain.enums.SearchType;
-import com.kimbos.onlinecommunity.dto.ArticleRequest;
-import com.kimbos.onlinecommunity.dto.ArticleResponse;
-import com.kimbos.onlinecommunity.dto.ArticleWithCommentsResponse;
+import com.kimbos.onlinecommunity.dto.request.ArticleRequest;
+import com.kimbos.onlinecommunity.dto.response.ArticleResponse;
+import com.kimbos.onlinecommunity.dto.response.ArticleWithCommentsResponse;
 import com.kimbos.onlinecommunity.dto.UserAccountDto;
 import com.kimbos.onlinecommunity.dto.security.CommunityPrincipal;
 import com.kimbos.onlinecommunity.service.ArticleService;
@@ -42,6 +42,7 @@ public class ArticleController {
         map.addAttribute("articles", articles);
         map.addAttribute("paginationBarNumbers", barNums);
         map.addAttribute("searchTypes", SearchType.values());
+        map.addAttribute("searchTypeHashtag", SearchType.HASHTAG);
 
         return "articles/index";
     }
@@ -52,6 +53,7 @@ public class ArticleController {
         map.addAttribute("article", article);
         map.addAttribute("comments", article.commentsResponse());
         map.addAttribute("totalCount", articleService.getArticleCount());
+        map.addAttribute("searchTypeHashtag", SearchType.HASHTAG);
 
         return "articles/detail";
     }
@@ -104,11 +106,13 @@ public class ArticleController {
         return "articles/form";
     }
 
-    @PostMapping ("/{articleId}/form")
-    public String updateArticle(@PathVariable Long articleId, ArticleRequest articleRequest) {
-        // TODO: Authentication
-        articleService.updateArticle(articleId, articleRequest.toDto(UserAccountDto.of(
-                "kim", "asdf1234", "kimbos0523@gmail.com", "kim", "test memo")));
+    @PostMapping("/{articleId}/form")
+    public String updateArticle(
+            @PathVariable Long articleId,
+            @AuthenticationPrincipal CommunityPrincipal communityPrincipal,
+            ArticleRequest articleRequest
+    ) {
+        articleService.updateArticle(articleId, articleRequest.toDto(communityPrincipal.toDto()));
 
         return "redirect:/articles/" + articleId;
     }

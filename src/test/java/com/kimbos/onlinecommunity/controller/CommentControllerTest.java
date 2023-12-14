@@ -2,7 +2,7 @@ package com.kimbos.onlinecommunity.controller;
 
 import com.kimbos.onlinecommunity.config.TestSecurityConfig;
 import com.kimbos.onlinecommunity.dto.CommentDto;
-import com.kimbos.onlinecommunity.dto.CommentRequest;
+import com.kimbos.onlinecommunity.dto.request.CommentRequest;
 import com.kimbos.onlinecommunity.service.CommentService;
 import com.kimbos.onlinecommunity.utils.FormDataEncoder;
 import org.junit.jupiter.api.DisplayName;
@@ -44,8 +44,8 @@ class CommentControllerTest {
     }
 
 
-    @WithUserDetails(value = "kimbos", setupBefore = TestExecutionEvent.TEST_EXECUTION)
-    @DisplayName("[view][POST] SaveComment - Ok Response")
+    @WithUserDetails(value = "kim", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    @DisplayName("[view][POST] Save Comment - Ok Response")
     @Test
     void viewPostSaveCommentOkResponse() throws Exception {
 
@@ -65,7 +65,7 @@ class CommentControllerTest {
         then(commentService).should().saveComment(any(CommentDto.class));
     }
 
-    @WithUserDetails(value = "kimbos", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    @WithUserDetails(value = "kim", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     @DisplayName("[view][GET] Delete Comment - Ok Response")
     @Test
     void viewGetDeleteCommentOkResponse() throws Exception {
@@ -88,4 +88,24 @@ class CommentControllerTest {
         then(commentService).should().deleteComment(commentId, userId);
     }
 
+    @WithUserDetails(value = "kim", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    @DisplayName("view][GET] Save Reply - Ok Response")
+    @Test
+    void viewGetSaveReplyOkResponse() throws Exception {
+
+        long articleId = 1L;
+        CommentRequest request = CommentRequest.of(articleId, 1L, "test comment");
+        willDoNothing().given(commentService).saveComment(any(CommentDto.class));
+
+        mvc.perform(
+                        post("/comments/new")
+                                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                                .content(formDataEncoder.encode(request))
+                                .with(csrf())
+                )
+                .andExpect(status().is3xxRedirection())
+                .andExpect(view().name("redirect:/articles/" + articleId))
+                .andExpect(redirectedUrl("/articles/" + articleId));
+        then(commentService).should().saveComment(any(CommentDto.class));
+    }
 }

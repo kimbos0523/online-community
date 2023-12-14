@@ -1,6 +1,6 @@
 package com.kimbos.onlinecommunity.controller;
 
-import com.kimbos.onlinecommunity.dto.CommentRequest;
+import com.kimbos.onlinecommunity.dto.request.CommentRequest;
 import com.kimbos.onlinecommunity.dto.UserAccountDto;
 import com.kimbos.onlinecommunity.dto.security.CommunityPrincipal;
 import com.kimbos.onlinecommunity.service.CommentService;
@@ -13,24 +13,20 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 
+@RequiredArgsConstructor
 @RequestMapping("/comments")
 @Controller
 public class CommentController {
 
-    private CommentService commentService;
+    private final CommentService commentService;
 
-    @Autowired
-    public CommentController(CommentService commentService) {
-        this.commentService = commentService;
-    }
 
     @PostMapping("/new")
-    public String postNewComment(CommentRequest commentRequest) {
-
-        // TODO: Authentication
-        commentService.saveComment(commentRequest.toDto(UserAccountDto.of(
-                "kim", "pw", "kimbos0523@gmail.com", null, null
-        )));
+    public String postNewComment(
+            @AuthenticationPrincipal CommunityPrincipal communityPrincipal,
+            CommentRequest commentRequest
+    ) {
+        commentService.saveComment(commentRequest.toDto(communityPrincipal.toDto()));
 
         return "redirect:/articles/" + commentRequest.articleId();
     }

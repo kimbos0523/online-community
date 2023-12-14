@@ -6,7 +6,9 @@ import lombok.Setter;
 import lombok.ToString;
 
 import javax.persistence.*;
+import java.util.LinkedHashSet;
 import java.util.Objects;
+import java.util.Set;
 
 @Getter
 @ToString(callSuper = true)
@@ -23,32 +25,54 @@ public class Comment extends AuditingField {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Setter @ManyToOne(optional = false) private Article article;
-    @Setter @ManyToOne(optional = false) @JoinColumn(name = "userId") private UserAccount userAccount;
+    @Setter
+    @ManyToOne(optional = false)
+    private Article article;
 
-    @Setter @Column(nullable = false, length = 500) private String content;
+    @Setter
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "userId")
+    private UserAccount userAccount;
+
+    @Setter
+    @Column(updatable = false)
+    private Long parentCommentId;
+
+    @ToString.Exclude
+    @OrderBy("createdAt ASC")
+    @OneToMany(mappedBy = "parentCommentId", cascade = CascadeType.ALL)
+    private Set<Comment> childComments = new LinkedHashSet<>();
+
+    @Setter
+    @Column(nullable = false, length = 500)
+    private String content;
 
 
-    private Comment(Article article, UserAccount userAccount, String content) {
+    private Comment(Article article, UserAccount userAccount, Long parentCommentId, String content) {
         this.article = article;
         this.userAccount = userAccount;
+        this.parentCommentId = parentCommentId;
         this.content = content;
     }
 
     public static Comment of(Article article, UserAccount userAccount, String content) {
-        return new Comment(article, userAccount, content);
+        return new Comment(article, userAccount, null, content);
+    }
+
+    public void addChildComment(Comment child) {
+        child.setParentCommentId(this.getId());
+        this.getChildComments().add(child);
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Comment comment = (Comment) o;
-        return Objects.equals(id, comment.id);
+        if (!(o instanceof Comment that)) return false;
+        return this.getId() != null && this.getId().equals(that.getId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(this.getId());
     }
 }

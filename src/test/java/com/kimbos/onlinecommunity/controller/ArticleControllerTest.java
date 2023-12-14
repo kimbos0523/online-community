@@ -4,6 +4,8 @@ import com.kimbos.onlinecommunity.config.TestSecurityConfig;
 import com.kimbos.onlinecommunity.domain.enums.FormStatus;
 import com.kimbos.onlinecommunity.domain.enums.SearchType;
 import com.kimbos.onlinecommunity.dto.*;
+import com.kimbos.onlinecommunity.dto.request.ArticleRequest;
+import com.kimbos.onlinecommunity.dto.response.ArticleResponse;
 import com.kimbos.onlinecommunity.service.ArticleService;
 import com.kimbos.onlinecommunity.service.PaginationService;
 import com.kimbos.onlinecommunity.utils.FormDataEncoder;
@@ -46,15 +48,17 @@ class ArticleControllerTest {
     @MockBean private ArticleService articleService;
     @MockBean private PaginationService paginationService;
 
-    public ArticleControllerTest(@Autowired MockMvc mvc,
-                                 @Autowired FormDataEncoder formDataEncoder) {
+    public ArticleControllerTest(
+            @Autowired MockMvc mvc,
+            @Autowired FormDataEncoder formDataEncoder
+    ) {
         this.mvc = mvc;
         this.formDataEncoder = formDataEncoder;
     }
 
     @DisplayName("[view][GET] Articles Page - Ok Response")
     @Test
-    public void viewGetArticlesPageOk() throws Exception {
+    public void viewGetArticlesPageOkResponse() throws Exception {
 
         given(articleService.searchArticles(eq(null), eq(null), any(Pageable.class))).willReturn(Page.empty());
         given(paginationService.getPaginationBarNumbers(anyInt(), anyInt())).willReturn(List.of(0, 1, 2, 3, 4));
@@ -65,7 +69,8 @@ class ArticleControllerTest {
                 .andExpect(view().name("articles/index"))
                 .andExpect(model().attributeExists("articles"))
                 .andExpect(model().attributeExists("paginationBarNumbers"))
-                .andExpect(model().attributeExists("searchTypes"));
+                .andExpect(model().attributeExists("searchTypes"))
+                .andExpect(model().attribute("searchTypeHashtag", SearchType.HASHTAG));
 
         then(articleService).should().searchArticles(eq(null), eq(null), any(Pageable.class));
         then(paginationService).should().getPaginationBarNumbers(anyInt(), anyInt());
@@ -73,7 +78,7 @@ class ArticleControllerTest {
 
     @DisplayName("[view][GET] Articles Page with Keyword - Ok Response")
     @Test
-    public void viewGetArticlesPageWithKeywordOk() throws Exception {
+    public void viewGetArticlesPageWithKeywordOkResponse() throws Exception {
 
         SearchType searchType = SearchType.TITLE;
         String searchValue = "title";
@@ -150,7 +155,8 @@ class ArticleControllerTest {
                 .andExpect(view().name("articles/detail"))
                 .andExpect(model().attributeExists("article"))
                 .andExpect(model().attributeExists("comments"))
-                .andExpect(model().attribute("totalCount", totalCount));
+                .andExpect(model().attribute("totalCount", totalCount))
+                .andExpect(model().attribute("searchTypeHashtag", SearchType.HASHTAG));
 
         then(articleService).should().getArticleWithComments(articleId);
         then(articleService).should().getArticleCount();
@@ -232,7 +238,7 @@ class ArticleControllerTest {
     @Test
     void viewPostSaveNewArticleOkResponse() throws Exception {
 
-        ArticleRequest articleRequest = ArticleRequest.of("new title", "new content", "#new");
+        ArticleRequest articleRequest = ArticleRequest.of("new title", "new content");
         willDoNothing().given(articleService).saveArticle(any(ArticleDto.class));
 
         mvc.perform(post("/articles/form")
@@ -278,13 +284,13 @@ class ArticleControllerTest {
         then(articleService).should().getArticle(articleId);
     }
 
-    @WithUserDetails(value = "kimbos", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    @WithUserDetails(value = "kim", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     @DisplayName("[view][POST] Delete Article - Ok Response")
     @Test
     void viewPostDeleteArticleOkResponse() throws Exception {
 
         long articleId = 1L;
-        String userId = "kimbos";
+        String userId = "kim";
         willDoNothing().given(articleService).deleteArticle(articleId, userId);
 
         mvc.perform(
@@ -309,7 +315,7 @@ class ArticleControllerTest {
                 createUserAccountDto(),
                 "title",
                 "content",
-                "#java"
+                Set.of(HashtagDto.of("java"))
         );
     }
 
@@ -320,7 +326,7 @@ class ArticleControllerTest {
                 Set.of(),
                 "title",
                 "content",
-                "#java",
+                Set.of(HashtagDto.of("java")),
                 LocalDateTime.now(),
                 "kim",
                 LocalDateTime.now(),

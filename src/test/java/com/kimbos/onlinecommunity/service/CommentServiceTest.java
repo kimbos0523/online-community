@@ -2,6 +2,7 @@ package com.kimbos.onlinecommunity.service;
 
 import com.kimbos.onlinecommunity.domain.Article;
 import com.kimbos.onlinecommunity.domain.Comment;
+import com.kimbos.onlinecommunity.domain.Hashtag;
 import com.kimbos.onlinecommunity.domain.UserAccount;
 import com.kimbos.onlinecommunity.dto.CommentDto;
 import com.kimbos.onlinecommunity.dto.UserAccountDto;
@@ -14,12 +15,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.*;
 
@@ -39,14 +43,23 @@ class CommentServiceTest {
     void searchCommentByArticleIdTest() {
 
         Long articleId = 1L;
-        Comment expectedComment = createComment("content");
-        given(commentRepository.findByArticle_Id(articleId)).willReturn(List.of(expectedComment));
+        Comment expectedParentComment = createComment(1L, "parent");
+        Comment expectedChildComment = createComment(2L, "child");
+        expectedChildComment.setParentCommentId(expectedParentComment.getId());
+        given(commentRepository.findByArticle_Id(articleId)).willReturn(List.of(
+                expectedParentComment,
+                expectedChildComment
+        ));
 
         List<CommentDto> actual = commentService.searchComments(articleId);
 
+        assertThat(actual).hasSize(2);
         assertThat(actual)
-                .hasSize(1)
-                .first().hasFieldOrPropertyWithValue("content", expectedComment.getContent());
+                .extracting("id", "articleId", "parentCommentId", "content")
+                .containsExactlyInAnyOrder(
+                        tuple(1L, 1L, null, "parent"),
+                        tuple(2L, 1L, 1L, "child")
+                );
         then(commentRepository).should().findByArticle_Id(articleId);
     }
 
@@ -56,11 +69,14 @@ class CommentServiceTest {
 
         CommentDto commentDto = createCommentDto("comment");
         given(articleRepository.getReferenceById(commentDto.articleId())).willReturn(createArticle());
+        given(userAccountRepository.getReferenceById(commentDto.userAccountDto().userId())).willReturn(createUserAccount());
         given(commentRepository.save(any(Comment.class))).willReturn(null);
 
         commentService.saveComment(commentDto);
 
         then(articleRepository).should().getReferenceById(commentDto.articleId());
+        then(userAccountRepository).should().getReferenceById(commentDto.userAccountDto().userId());
+        then(commentRepository).should(never()).getReferenceById(anyLong());
         then(commentRepository).should().save(any(Comment.class));
     }
 
@@ -78,34 +94,24 @@ class CommentServiceTest {
         then(commentRepository).shouldHaveNoInteractions();
     }
 
-    @DisplayName("Input New Comment Information -> Update Comment")
+    @DisplayName("Input Parent Comment Id and New Comment Information -> Update Comment")
     @Test
-    void inputNewCommentInfoUpdateComment() {
+    void inputParentCommentIdNewCommentInfoUpdateComment() {
 
-        String prevContent = "content";
-        String newContent = "comment";
-        Comment comment = createComment(prevContent);
-        CommentDto dto = createCommentDto(newContent);
-        given(commentRepository.getReferenceById(dto.id())).willReturn(comment);
+        Long parentCommentId = 1L;
+        Comment parent = createComment(parentCommentId, "comment");
+        CommentDto child  = createCommentDto(parentCommentId, "reply");
+        given(articleRepository.getReferenceById(child.articleId())).willReturn(createArticle());
+        given(userAccountRepository.getReferenceById(child.userAccountDto().userId())).willReturn(createUserAccount());
+        given(commentRepository.getReferenceById(child.parentCommentId())).willReturn(parent);
 
-        commentService.updateComment(dto);
+        commentService.saveComment(child);
 
-        assertThat(comment.getContent())
-                .isNotEqualTo(prevContent)
-                .isEqualTo(newContent);
-        then(commentRepository).should().getReferenceById(dto.id());
-    }
-
-    @DisplayName("없는 댓글 정보를 수정하려고 하면, 경고 로그를 찍고 아무 것도 안 한다.")
-    @Test
-    void givenNonexistentComment_whenUpdatingComment_thenLogsWarningAndDoesNothing() {
-
-        CommentDto dto = createCommentDto("댓글");
-        given(commentRepository.getReferenceById(dto.id())).willThrow(EntityNotFoundException.class);
-
-        commentService.updateComment(dto);
-
-        then(commentRepository).should().getReferenceById(dto.id());
+        assertThat(child.parentCommentId()).isNotNull();
+        then(articleRepository).should().getReferenceById(child.articleId());
+        then(userAccountRepository).should().getReferenceById(child.userAccountDto().userId());
+        then(commentRepository).should().getReferenceById(child.parentCommentId());
+        then(commentRepository).should(never()).save(any(Comment.class));
     }
 
     @DisplayName("Input CommentId -> Delete Comment.")
@@ -121,59 +127,82 @@ class CommentServiceTest {
         then(commentRepository).should().deleteByIdAndUserAccount_UserId(commentId, userId);
     }
 
+
     /**********************************************/
     /********** Private Methods for Test **********/
     /**********************************************/
 
     private CommentDto createCommentDto(String content) {
-        return CommentDto.of(1L,
+        return createCommentDto(null, content);
+    }
+
+    private CommentDto createCommentDto(Long parentCommentId, String content) {
+        return createCommentDto(1L, parentCommentId, content);
+    }
+
+    private CommentDto createCommentDto(Long id, Long parentCommentId, String content) {
+        return CommentDto.of(
+                id,
                 1L,
                 createUserAccountDto(),
+                parentCommentId,
                 content,
                 LocalDateTime.now(),
-                "kimbos",
+                "kim",
                 LocalDateTime.now(),
-                "kimbos");
+                "kim"
+        );
     }
+
 
     private UserAccountDto createUserAccountDto() {
         return UserAccountDto.of(
-                "uno",
+                "kim",
                 "password",
-                "uno@mail.com",
-                "Uno",
-                "This is memo",
+                "kimbos0523@gmail.com",
+                "kim",
+                "test memo",
                 LocalDateTime.now(),
-                "uno",
+                "kim",
                 LocalDateTime.now(),
-                "uno"
+                "kim"
         );
     }
 
-    private Comment createComment(String content) {
-        return Comment.of(
-                Article.of(createUserAccount(), "title", "content", "hashtag"),
+    private Comment createComment(Long id, String content) {
+        Comment comment = Comment.of(
+                createArticle(),
                 createUserAccount(),
                 content
         );
+        ReflectionTestUtils.setField(comment, "id", id);
+
+        return comment;
     }
 
     private UserAccount createUserAccount() {
         return UserAccount.of(
-                "uno",
+                "kim",
                 "password",
-                "uno@email.com",
-                "Uno",
+                "kim@email.com",
+                "Kim",
                 null
         );
     }
 
     private Article createArticle() {
-        return Article.of(
+        Article article = Article.of(
                 createUserAccount(),
                 "title",
-                "content",
-                "#java"
+                "content"
         );
+        ReflectionTestUtils.setField(article, "id", 1L);
+        article.addHashtags(Set.of(createHashtag(article)));
+
+        return article;
+    }
+
+    private Hashtag createHashtag(Article article) {
+        return Hashtag.of("java");
     }
 }

@@ -1,7 +1,7 @@
 package com.kimbos.onlinecommunity.config;
 
-import com.kimbos.onlinecommunity.domain.UserAccount;
-import com.kimbos.onlinecommunity.repository.UserAccountRepository;
+import com.kimbos.onlinecommunity.dto.UserAccountDto;
+import com.kimbos.onlinecommunity.service.UserAccountService;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.event.annotation.BeforeTestMethod;
@@ -15,16 +15,23 @@ import static org.mockito.BDDMockito.given;
 public class TestSecurityConfig {
 
     @MockBean
-    private UserAccountRepository userAccountRepository;
+    private UserAccountService userAccountService;
 
     @BeforeTestMethod
     public void securitySetup() {
-        given(userAccountRepository.findById(anyString())).willReturn(Optional.of(UserAccount.of(
-                "kimbos",
-                "pw",
+        given(userAccountService.searchUser(anyString()))
+                .willReturn(Optional.of(createUserAccountDto()));
+        given(userAccountService.saveUser(anyString(), anyString(), anyString(), anyString(), anyString()))
+                .willReturn(createUserAccountDto());
+    }
+
+    private UserAccountDto createUserAccountDto() {
+        return UserAccountDto.of(
+                "kim",
+                "asdf1234",
                 "kimbos0523@gmail.com",
-                "kimbos",
-                "test memo"
-        )));
+                "kim",
+                "test user"
+        );
     }
 }

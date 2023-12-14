@@ -26,12 +26,10 @@
     <div class="row g-5">
         <section class="col-md-5 col-lg-4 order-md-last">
             <aside>
-                <p><span id="nickname" class="nick-name">kimbos</span></p>
+                <p><span id="nickname" class="nick-name">kim</span></p>
                 <p><a id="email" class="u-url" rel="me" href="kimbos0523@gmail.com">kimbos0523@gmail.com</a></p>
-                <p>
-                    <time id="created-at" datetime="2023-05-08T00:00:00">2023-05-08</time>
-                </p>
-                <p><span id="hashtag">#java</span></p>
+                <p><time id="created-at" datetime="2023-05-08T00:00:00">2023-05-08</time></p>
+                <p><span id="hashtag" class="badge text-bg-secondary mx-1"><a class="text-reset">#java</a></span></p>
             </aside>
         </section>
 
@@ -51,7 +49,7 @@
 
     <div class="row g-5">
         <section>
-            <form class="row g-3" id="comment-form">
+            <form class="row g-3 comment-form">
                 <input type="hidden" class="article-id">
                 <div class="col-md-9 col-lg-8">
                     <label for="comment-textbox" hidden>Comment</label>
@@ -64,41 +62,37 @@
                 </div>
             </form>
 
-            <ul id="article-comments" lass="row col-md-10 col-lg-8 pt-3">
-                <li>
-                    <form class="comment-form">
+            <ul class="article-comments">
+                <li class="article-comment">
+                    <form class="comment-delete-form">
                         <input type="hidden" class="article-id">
                         <div class="row">
                             <div class="col-md-10 col-lg-9">
                                 <strong>Kim</strong>
-                                <small>
-                                    <time>2023-05-08</time>
-                                </small>
-                                <p>
+                                <small><time>2023-05-08</time></small>
+                                <p class="mb-1">
                                     Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>
                                     Lorem ipsum dolor sit amet
                                 </p>
                             </div>
-                            <div class="col-2 mb-3 align-self-auto">
-                                <button type="submit" class="btn btn-outline-danger" id="delete-comment-button">Delete
-                                </button>
+                            <div class="col-2 mb-3 align-self-center">
+                                <button type="submit" class="btn btn-outline-danger">Delete</button>
                             </div>
                         </div>
                     </form>
-                </li>
-                <li>
+
+                    <ul class="child-comments"></ul>
+
                     <div class="row">
-                        <div class="col-md-10 col-lg-9">
-                            <strong>dkrak</strong>
-                            <small><time>2023-06-06</time></small>
-                            <p>
-                                Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>
-                                Lorem ipsum dolor sit amet
-                            </p>
-                        </div>
-                        <div class="col-2 mb-3">
-                            <button type="submit" class="btn btn-outline-danger" hidden>Delete</button>
-                        </div>
+                        <details class="col-md-10 col-lg-9 mb-4">
+                            <summary>Reply</summary>
+                            <form class="comment-form">
+                                <input type="hidden" class="article-id">
+                                <input type="hidden" class="parent-comment-id">
+                                <textarea class="form-control comment-textbox" placeholder="Write Comment.." rows="2" required></textarea>
+                                <button class="form-control btn btn-primary mt-2" type="submit">Write</button>
+                            </form>
+                        </details>
                     </div>
                 </li>
             </ul>
