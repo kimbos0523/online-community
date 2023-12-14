@@ -1,6 +1,6 @@
 # online-community
 
-The service is designed to explore the most basic and ubiquitous online community. The service features simple CRUD functionality and is programmed using Java 17 and the Spring Framework. This project was initiated in January 2023 and developed over the course of one month. During the integration process, it was transferred from a different GitHub account. Anticipated advanced features include enhancements in security and administrative functionalities.
+The service is designed to explore the most basic and ubiquitous online community. The service features simple CRUD functionality and is programmed using Java 17 and the Spring Framework. This project was initiated in January 2023 and developed over the course of one month. During the integration process, this project was transferred from a different GitHub account. The expected upcoming improvements include an admin page and user registration functionality through the sign-up process
 
 # Development Environment and Tech Stack
 
@@ -15,15 +15,27 @@ The service is designed to explore the most basic and ubiquitous online communit
   * Rest Repositories HAL Explorer
   * H2 Database
   * MySQL Driver
+  * MariaDB
+  * Postgresql
   * Thymleaf
   * Lombok
   * Spring Boot DevTools
-  * Spring Configuration Processor  
+  * Spring Configuration Processor
+  * Oauth2 Client 
 * QueryDSL
 * Bootstrap
-* Heroku
 
 # Demo
 
 https://port-0-online-community-1gksli2alpkb2m2g.sel5.cloudtype.app/
+
+# Test Id and Password
+
+* ID: kim
+* Password: asdf1234
+
+# Oauth2 Kakao successful log-in 
+
+![Oauth2 Kakao Successful log-in](https://github.com/kimbos0523/online-community/assets/59491836/c48d6eb0-51df-4840-bbb7-db92248622a0)
+
 
