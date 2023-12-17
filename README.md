@@ -29,6 +29,10 @@ The service is designed to explore the most basic and ubiquitous online communit
 
 https://port-0-online-community-1gksli2alpkb2m2g.sel5.cloudtype.app/
 
+The demo sometimes my not work because of a free-tier cloud I used.
+To prepare for such case, I have uploaded screenshots depicting the operation of the site
+when it is running.
+
 # Test Id and Password
 
 * ID: kim
